@@ -10,7 +10,7 @@ class QmkMSys {
 		CommandRunner.AddCommands("msys", this.Open.Bind(this))
 	}
 	
-	static Open(&folder, hwnd, &err) {
+	static Open(&folder, hwnd, &msg) {
 		if StrIsEmptyOrWhiteSpace(folder) {
 			Run(this._fullProcessNameWithArgs, Paths.Qmk)
 			return
@@ -18,7 +18,7 @@ class QmkMSys {
 		
 		if folder == "." {
 			if !Paths.TryGet(&path, hwnd) {
-				err := "Path not found"
+				msg := "Path not found."
 				return
 			} 
 			
@@ -27,7 +27,7 @@ class QmkMSys {
 		}
 		
 		if !Paths.TryGetFolderPath(folder, &p) {
-			err := Format("Folder «{1}» not found", folder)
+			msg := Format("Folder «{}» not found.", folder)
 			return
 		}
 		

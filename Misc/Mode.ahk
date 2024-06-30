@@ -103,7 +103,7 @@ class Mode {
 	
 	; --- private ---
 	
-	static _HandleCommand(&args, hwnd, &err) {
+	static _HandleCommand(&args, hwnd, &msg) {
 		; TODO:
 		
 		if args == "-t" {
@@ -111,7 +111,7 @@ class Mode {
 			return
 		}
 		
-		err := "
+		msg := "
 			(
 			Wrong option.`n
 			Supported list of options:

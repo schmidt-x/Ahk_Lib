@@ -26,10 +26,10 @@ class CommandRunner {
 	/**
 	 * @type {Gui.Control}
 	 */
-	static _errorEdit       := unset
-	static _errorEditHwnd   := unset
-	static _errorEditHeight := 350
-	static _errorEditPaddY  := 15
+	static _messageEdit       := unset
+	static _messageEditHwnd   := unset
+	static _messageEditHeight := 350
+	static _messageEditPaddY  := 15
 	
 	static _escaped := false
 	static _prevWinHwnd := 0
@@ -65,10 +65,10 @@ class CommandRunner {
 			x + Disposition.GetShift(xDisposition, width),
 			y + Disposition.GetShift(yDisposition, height),
 			width,
-			height + this._errorEditHeight + this._errorEditPaddY)
+			height + this._messageEditHeight + this._messageEditPaddY)
 
 		this._consoleEdit.Move(, , width, height)
-		this._errorEdit.Move(, height + this._errorEditPaddY, width)
+		this._messageEdit.Move(, height + this._messageEditPaddY, width)
 		
 		this._xPos := x
 		this._yPos := y
@@ -164,9 +164,10 @@ class CommandRunner {
 	; TODO: add docs
 	static _Execute() {
 		input := this._consoleEdit.Value
+		this._consoleEdit.Value := ""
 		
 		if StrIsEmptyOrWhiteSpace(input) {
-			this._DisplayError("Empty input")
+			this._DisplayMessage("Empty input.")
 			return
 		}
 		
@@ -174,28 +175,21 @@ class CommandRunner {
 		
 		func := this._commands.Get(command)
 		if not func {
-			this._DisplayErrorF("Command «{1}» not found", command)
+			this._DisplayMessage(Format("Command «{}» not found.", command))
 			return
 		}
 		
 		this._isRunning := true
 		try {
-			func(&args, this._prevWinHwnd, &err:="")
+			func(&args, this._prevWinHwnd, &msg:="")
 		} finally {
 			this._isRunning := false
 		}
 		
-		if err {
-			this._DisplayError(err)
-			return
-		}
-		
-		if this._consoleEdit.Visible {
-			this._consoleEdit.Value := ""
-		}
-		
-		if this._errorEdit.Visible {
-			this._HideError()
+		if msg {
+			this._DisplayMessage(msg)
+		} else if this._messageEdit.Visible {
+			this._HideMessage()
 		}
 		
 		
@@ -213,28 +207,22 @@ class CommandRunner {
 		this._consoleEdit.Value := ""
 		this._consoleEdit.Visible := false
 		
-		if this._errorEdit.Visible {
-			this._errorEdit.Value := ""
-			this._errorEdit.Visible := false
+		if this._messageEdit.Visible {
+			this._messageEdit.Value := ""
+			this._messageEdit.Visible := false
 		}
 	}
 	
-	static _DisplayErrorF(pattern, params*) {
-		this._errorEdit.Visible := true
-		this._errorEdit.Value := Format(pattern, params*)
-		ControlShow(this._errorEditHwnd)
+	static _DisplayMessage(msg) {
+		this._messageEdit.Visible := true
+		this._messageEdit.Value := msg
+		ControlShow(this._messageEditHwnd)
 	}
 	
-	static _DisplayError(err) {
-		this._errorEdit.Visible := true
-		this._errorEdit.Value := err
-		ControlShow(this._errorEditHwnd)
-	}
-	
-	static _HideError() {
-		this._errorEdit.Value := ""
-		this._errorEdit.Visible := false
-		ControlHide(this._errorEditHwnd)
+	static _HideMessage() {
+		this._messageEdit.Value := ""
+		this._messageEdit.Visible := false
+		ControlHide(this._messageEditHwnd)
 	}
 	
 	static _InitCommands() {
@@ -243,8 +231,8 @@ class CommandRunner {
 		this._commands.Default := ""
 	}
 	
-	static _HandleCommand(&args, _, &err) {
-		err := "TODO"
+	static _HandleCommand(&args, _, &msg) {
+		msg := "TODO"
 	}
 	
 	static _InitConsole() {
@@ -263,11 +251,11 @@ class CommandRunner {
 		
 		editOpts := Format(
 			"Background171717 -E0x200 xP yP+{1} wP h{2} -VScroll ReadOnly Hidden", 
-			this._height + this._errorEditPaddY,
-			this._errorEditHeight)
+			this._height + this._messageEditPaddY,
+			this._messageEditHeight)
 			
-		this._errorEdit := this._console.AddEdit(editOpts)
-		this._errorEditHwnd := ControlGetHwnd(this._errorEdit)
+		this._messageEdit := this._console.AddEdit(editOpts)
+		this._messageEditHwnd := ControlGetHwnd(this._messageEdit)
 		
 		this._console.Show("Hide")
 		
